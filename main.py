@@ -1,17 +1,3 @@
-## Logesh Mahendran
-## Space Battle Modification - Summative Assignment
-## Mr. Bratberg - ICD2O
-## Last updated: January 23rd, 2024
-# PLEASE PLAY ON 800x600.
-## Description: This is my modification of the original "Space Battle" game. There are three levels you can play, as well as an option to see more details on how the game works and the option to switch controls. The goal is to eliminate all the enemies by shooting bullets at them. The 7 major modifications are:
-# - Removing wait time for bullets
-# - A starting screen with a play button
-# - Options to replay or continue after winning or losing a battle
-# - A second level with different sprites and backgrounds
-# - A third level, which is a boss level with new attacks and movements
-# - Three power ups that provide the player with boosts for some time
-# - Additions to the starting screen (How to Play and Options)
-
 ## MODULES
 import pygame
 import math
