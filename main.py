@@ -270,7 +270,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     screen.blit(introText,(175,200))
   elif battleNumber == 3:
     introText = font.render("Weird Waveforms",True,(128,128,128))
-    screen.blit(introText,(175,200))
+    screen.blit(introText,(150,200))
   elif battleNumber == 4:
     introText = font.render("8-Bit Blaster",True,(128,128,128))
     screen.blit(introText,(200,200))
@@ -296,7 +296,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
   enemyHealth = []
   enemyState = []
   numEnemies = count
-  enemyTheta = []
   enemyDirection = []
   enemyBaseY = []
 
@@ -311,7 +310,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     enemyState.append("alive")
     enemyDirection.append(1)
     if battleNumber == 3:
-      enemyTheta.append(randint(0,180))
       enemyBaseY.append(randint(spawnRange1,spawnRange2))
   
   # Bullet Setup
@@ -467,7 +465,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       enemyY[i] += enemyY_change[i]
       if battleNumber == 3:
         enemyY[i] =  20*math.cos(math.radians(2*enemyX[i])) + enemyBaseY[i]
-        enemyTheta[i] += enemyDirection[i]*0.25
         # enemyX_change[i] = randint(10,20)/10
       if bossMode:
         if enemyX[i]+32 > playerX:
@@ -525,6 +522,9 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       enemyY_change.pop(deadEnemy)
       enemyHealth.pop(deadEnemy)
       enemyState.pop(deadEnemy)
+      enemyDirection.pop(deadEnemy)
+      if battleNumber == 3:
+        enemyBaseY.pop(deadEnemy)
       numEnemies -= 1
   
     # Bullet Movement
