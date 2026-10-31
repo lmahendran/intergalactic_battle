@@ -15,7 +15,6 @@
 ## MODULES
 import pygame
 import math
-import physics
 import sys
 from time import sleep
 from random import randint
