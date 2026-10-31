@@ -1,21 +1,7 @@
-## Logesh Mahendran
-## Space Battle Modification - Summative Assignment
-## Mr. Bratberg - ICD2O
-## Last updated: January 23rd, 2024
-# PLEASE PLAY ON 800x600.
-## Description: This is my modification of the original "Space Battle" game. There are three levels you can play, as well as an option to see more details on how the game works and the option to switch controls. The goal is to eliminate all the enemies by shooting bullets at them. The 7 major modifications are:
-# - Removing wait time for bullets
-# - A starting screen with a play button
-# - Options to replay or continue after winning or losing a battle
-# - A second level with different sprites and backgrounds
-# - A third level, which is a boss level with new attacks and movements
-# - Three power ups that provide the player with boosts for some time
-# - Additions to the starting screen (How to Play and Options)
-
 ## MODULES
 import pygame
 import math
-import physics
+import os
 import sys
 from time import sleep
 from random import randint
@@ -23,22 +9,44 @@ from random import randint
 # Initialize the pygame
 pygame.init()
 clock = pygame.time.Clock()
+FPS = 300 # Speeds are in pixels per frame, so this sets how fast the game plays
+
+# Image folder (found relative to this file, so the game runs from any directory)
+IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),"assets","images")
+
+# Image Loading Function (folder is backgrounds, sprites, powerups or ui)
+def load_image(folder,name):
+  return pygame.image.load(os.path.join(IMAGE_DIR,folder,name))
+
+# Icon Cropping Function (removes empty space around the image, keeping it square)
+def crop_icon(image):
+  shipArea = image.get_bounding_rect() # Smallest rectangle containing visible pixels
+  size = max(shipArea.width,shipArea.height)
+  croppedIcon = pygame.Surface((size,size),pygame.SRCALPHA)
+  croppedIcon.blit(image,((size-shipArea.width)//2,(size-shipArea.height)//2),shipArea)
+  return croppedIcon
 
 # Screen setup (screen, title and icon)
 screen = pygame.display.set_mode((800,600))
 pygame.display.set_caption("Intergalactic Battle")
-icon = pygame.image.load("enemy4.png")
+icon = crop_icon(load_image("ui","icon.png"))
 pygame.display.set_icon(icon)
 
 ## FUNCTIONS
 
+# Quit Function (closes the game if the window's X button is clicked)
+def check_quit(event):
+  if event.type == pygame.QUIT:
+    pygame.quit()
+    sys.exit()
+
 # Starting Screen Function
 def starting_screen():
-  startingScreen = pygame.image.load("starting_screen.png")
+  startingScreen = load_image("backgrounds","starting_screen.png")
   startingFont = pygame.font.Font('freesansbold.ttf',56)
   startingText = startingFont.render("INTERGALACTIC BATTLE",True,(255,255,255))
-  howToPlayButton = pygame.image.load("how_to_play.png") 
-  optionsButton = pygame.image.load("options.png")
+  howToPlayButton = load_image("ui","how_to_play.png") 
+  optionsButton = load_image("ui","options.png")
   global keys
   keys = [pygame.K_LEFT,pygame.K_RIGHT,pygame.K_SPACE]
   started = False
@@ -55,6 +63,7 @@ def starting_screen():
 
     # Check if mouse is clicked
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         mouseClickX, mouseClickY = get_latest_click()
         if math.pow(mouseClickX-400,2) + math.pow(mouseClickY-300,2) <= 3600: #Equation of the play button circle
@@ -83,7 +92,9 @@ def starting_screen():
           pygame.display.update()
           understood = False
           while not understood:
+            clock.tick(FPS)
             for event in pygame.event.get():
+              check_quit(event)
               if event.type == pygame.MOUSEBUTTONDOWN:
                 understood = True
 
@@ -104,8 +115,10 @@ def starting_screen():
             screen.blit(text,(10,280))
             screen.blit(defaultControlsText,(100,320))
             pygame.display.update()
+            clock.tick(FPS)
             keySet = False
             for event in pygame.event.get():
+              check_quit(event)
               if event.type == pygame.KEYDOWN:
                 keys.append(event.key)
               if event.type == pygame.MOUSEBUTTONDOWN:
@@ -114,14 +127,15 @@ def starting_screen():
               keySet = True
             
     pygame.display.update()
+    clock.tick(FPS)
   return keys
 
 # Battle End Function
 def battle_end(status):
   gameEnd_font = pygame.font.Font('freesansbold.ttf',64)
-  tryAgainImg = pygame.transform.scale(pygame.image.load("try_again.png"),(150,75))
-  playAgainImg = pygame.transform.scale(pygame.image.load("play_again.png"),(150,75))
-  continueImg = pygame.transform.scale(pygame.image.load("continue.png"),(150,75))
+  tryAgainImg = pygame.transform.scale(load_image("ui","try_again.png"),(150,75))
+  playAgainImg = pygame.transform.scale(load_image("ui","play_again.png"),(150,75))
+  continueImg = pygame.transform.scale(load_image("ui","continue.png"),(150,75))
   screen.fill((0,0,0))
   choice = "none"
 
@@ -139,6 +153,7 @@ def battle_end(status):
 
     # Detect mouse clicks on the options
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         mouseClickX, mouseClickY = get_latest_click()
         if status == "won":
@@ -151,6 +166,7 @@ def battle_end(status):
             choice = "play again"
             
     pygame.display.update()
+    clock.tick(FPS)
 
   return choice
   
@@ -163,10 +179,12 @@ def game_end():
     screen.fill((0,0,0))
     screen.blit(thankYouMessage,(150,260))
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         returnToMenu = True
 
     pygame.display.update()
+    clock.tick(FPS)
 
 # Score and Enemy Count Function
 def show_score(score,count,bossMode,health,boost,powerUpNum):
@@ -252,13 +270,16 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     introText = font.render("Blimp Outbreak",True,(128,128,128))
     screen.blit(introText,(175,200))
   elif battleNumber == 3:
+    introText = font.render("Weird Waveforms",True,(128,128,128))
+    screen.blit(introText,(150,200))
+  elif battleNumber == 4:
     introText = font.render("8-Bit Blaster",True,(128,128,128))
     screen.blit(introText,(200,200))
   pygame.display.update()
   sleep(2)
   
   # Player Setup
-  playerSprite = pygame.image.load("player_1.png")
+  playerSprite = load_image("sprites","player_1.png")
   playerSprite = pygame.transform.scale(playerSprite,(32,32))
   playerSprite = pygame.transform.rotate(playerSprite,180)
   playerX = 384
@@ -276,7 +297,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
   enemyHealth = []
   enemyState = []
   numEnemies = count
-  enemyTheta = []
   enemyDirection = []
   enemyBaseY = []
 
@@ -291,7 +311,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     enemyState.append("alive")
     enemyDirection.append(1)
     if battleNumber == 3:
-      enemyTheta.append(randint(0,180))
       enemyBaseY.append(randint(spawnRange1,spawnRange2))
   
   # Bullet Setup
@@ -320,15 +339,15 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     bossBulletY = []
     bossBulletY_change = []
     bossBulletState = []
-    bossIndicator = pygame.transform.rotate(pygame.transform.scale(pygame.image.load("boss_bullet.png"),(8,8)),180)
+    bossIndicator = pygame.transform.rotate(pygame.transform.scale(load_image("sprites","boss_bullet.png"),(8,8)),180)
     bossIndicatorX = [0,0]
     bossAttackPhase = 0
     numBossBullets = 1
 
   # Power Ups
-  fasterSpeed = pygame.transform.scale(pygame.image.load("player_speed.png"),(40,40))
-  fasterBullet = pygame.transform.scale(pygame.image.load("bullet_speed.png"),(40,40))
-  tempShield = pygame.transform.scale(pygame.image.load("temp_shield.png"),(40,40))
+  fasterSpeed = pygame.transform.scale(load_image("powerups","player_speed.png"),(40,40))
+  fasterBullet = pygame.transform.scale(load_image("powerups","bullet_speed.png"),(40,40))
+  tempShield = pygame.transform.scale(load_image("powerups","temp_shield.png"),(40,40))
   SPAWNPOWERUP = pygame.USEREVENT + 3
   ENDBOOST = pygame.USEREVENT + 4
   pygame.event.set_allowed(SPAWNPOWERUP)
@@ -350,10 +369,8 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
 
     # Event Checking
     for event in pygame.event.get():
-      if event.type == pygame.QUIT:
-        pygame.quit()
-        sys.exit()
-  
+      check_quit(event)
+
       # Player events
       if event.type == pygame.KEYDOWN:
         if event.key == keys[0]:
@@ -362,7 +379,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
           playerX_change = 0.8
         if event.key == keys[2]:
           numBullets += 1
-          bulletSprite.append(pygame.transform.rotate(pygame.transform.scale(pygame.image.load("bullet.png"),(20,8)),90))
+          bulletSprite.append(pygame.transform.rotate(pygame.transform.scale(load_image("sprites","bullet.png"),(20,8)),90))
           bulletX.append(0)
           bulletY.append(480)
           bulletY_change.append(3)
@@ -382,7 +399,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
 
       # Spawn power up
       if event.type == SPAWNPOWERUP:
-        powerUpNum = randint(1,battleNumber)
+        powerUpNum = randint(1,min(battleNumber,3)) # Only 3 power ups exist
         powerUpX = randint(100,760)
         powerUpY = randint(30,560)
         powerUpSpawned = True
@@ -432,7 +449,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
               speedMultiplier = 1+(0.01*bossBulletCount)
               bossBulletX.append(playerX+10)
               for i in range(bossBulletCount):
-                bossBulletSprite.append(pygame.transform.rotate(pygame.transform.scale(pygame.image.load("boss_bullet.png"),(12,32)),180))
+                bossBulletSprite.append(pygame.transform.rotate(pygame.transform.scale(load_image("sprites","boss_bullet.png"),(12,32)),180))
                 bossBulletY.append(0)
                 if randomBulletSpeeds:
                   bossBulletY_change.append(round((randint(10,20))/10*speedMultiplier,4))
@@ -449,7 +466,6 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       enemyY[i] += enemyY_change[i]
       if battleNumber == 3:
         enemyY[i] =  20*math.cos(math.radians(2*enemyX[i])) + enemyBaseY[i]
-        enemyTheta[i] += enemyDirection[i]*0.25
         # enemyX_change[i] = randint(10,20)/10
       if bossMode:
         if enemyX[i]+32 > playerX:
@@ -507,6 +523,9 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       enemyY_change.pop(deadEnemy)
       enemyHealth.pop(deadEnemy)
       enemyState.pop(deadEnemy)
+      enemyDirection.pop(deadEnemy)
+      if battleNumber == 3:
+        enemyBaseY.pop(deadEnemy)
       numEnemies -= 1
   
     # Bullet Movement
@@ -600,7 +619,8 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       running = False
 
     pygame.display.update()
-    
+    clock.tick(FPS)
+
   return gameState
 
 ## MAIN
@@ -611,36 +631,36 @@ def main():
     starting_screen()
   
     # First Battle - UFO Mania
-    background = pygame.image.load("background1.jpg")
-    sprite = pygame.transform.scale(pygame.image.load("enemy1.png"),(64,64))
+    background = load_image("backgrounds","background1.jpg")
+    sprite = pygame.transform.scale(load_image("sprites","enemy1.png"),(64,64))
     choice = "play again"
     while choice == "play again":
       # Argument order: background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,health,hitbox,battleNumber
-      gameState = battle(background,sprite,10,1,50,50,False,10,64,1)
+      gameState = battle(background,sprite,10,0.75,50,50,False,10,64,1)
       choice = battle_end(gameState)
   
     # Second Battle - Blimp Outbreak
-    background = pygame.image.load("background2.jpg")
-    sprite = pygame.transform.scale(pygame.image.load("enemy2.webp"),(72,49))
+    background = load_image("backgrounds","background2.jpg")
+    sprite = pygame.transform.scale(load_image("sprites","enemy2.webp"),(72,49))
     choice = "play again"
     while choice == "play again":
-      gameState = battle(background,sprite,20,2,50,100,False,5,72,2)
+      gameState = battle(background,sprite,20,1.5,50,100,False,5,72,2)
       choice = battle_end(gameState)
     
     # Third Battle - Cosinial Waves
-    background = pygame.image.load("background3.jpg")
-    sprite = pygame.transform.rotate(pygame.transform.scale(pygame.image.load("enemy3.png"),(64,64)),270)
+    background = load_image("backgrounds","background3.jpg")
+    sprite = pygame.transform.rotate(pygame.transform.scale(load_image("sprites","enemy3.png"),(64,64)),270)
     choice = "play again"
     while choice == "play again":
       gameState = battle(background,sprite,15,1,50,100,False,10,64,3)
       choice = battle_end(gameState)
   
     # Fourth Battle - 8-bit Boss
-    background = pygame.image.load("background4.jpg")
-    sprite = pygame.transform.scale(pygame.image.load("enemy4.png"),(96,96))
+    background = load_image("backgrounds","background4.jpg")
+    sprite = pygame.transform.scale(load_image("sprites","enemy4.png"),(96,96))
     choice = "play again"
     while choice == "play again":
-      gameState = battle(background,sprite,1,0.5,50,50,True,100,96,4)
+      gameState = battle(background,sprite,1,0.3,50,50,True,100,96,4)
       choice = battle_end(gameState)
 
     # Once the third battle is won
