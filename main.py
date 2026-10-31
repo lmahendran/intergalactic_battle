@@ -23,6 +23,7 @@ from random import randint
 # Initialize the pygame
 pygame.init()
 clock = pygame.time.Clock()
+FPS = 300 # Speeds are in pixels per frame, so this sets how fast the game plays
 
 # Screen setup (screen, title and icon)
 screen = pygame.display.set_mode((800,600))
@@ -31,6 +32,12 @@ icon = pygame.image.load("enemy4.png")
 pygame.display.set_icon(icon)
 
 ## FUNCTIONS
+
+# Quit Function (closes the game if the window's X button is clicked)
+def check_quit(event):
+  if event.type == pygame.QUIT:
+    pygame.quit()
+    sys.exit()
 
 # Starting Screen Function
 def starting_screen():
@@ -55,6 +62,7 @@ def starting_screen():
 
     # Check if mouse is clicked
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         mouseClickX, mouseClickY = get_latest_click()
         if math.pow(mouseClickX-400,2) + math.pow(mouseClickY-300,2) <= 3600: #Equation of the play button circle
@@ -83,7 +91,9 @@ def starting_screen():
           pygame.display.update()
           understood = False
           while not understood:
+            clock.tick(FPS)
             for event in pygame.event.get():
+              check_quit(event)
               if event.type == pygame.MOUSEBUTTONDOWN:
                 understood = True
 
@@ -104,8 +114,10 @@ def starting_screen():
             screen.blit(text,(10,280))
             screen.blit(defaultControlsText,(100,320))
             pygame.display.update()
+            clock.tick(FPS)
             keySet = False
             for event in pygame.event.get():
+              check_quit(event)
               if event.type == pygame.KEYDOWN:
                 keys.append(event.key)
               if event.type == pygame.MOUSEBUTTONDOWN:
@@ -114,6 +126,7 @@ def starting_screen():
               keySet = True
             
     pygame.display.update()
+    clock.tick(FPS)
   return keys
 
 # Battle End Function
@@ -139,6 +152,7 @@ def battle_end(status):
 
     # Detect mouse clicks on the options
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         mouseClickX, mouseClickY = get_latest_click()
         if status == "won":
@@ -151,6 +165,7 @@ def battle_end(status):
             choice = "play again"
             
     pygame.display.update()
+    clock.tick(FPS)
 
   return choice
   
@@ -163,10 +178,12 @@ def game_end():
     screen.fill((0,0,0))
     screen.blit(thankYouMessage,(150,260))
     for event in pygame.event.get():
+      check_quit(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         returnToMenu = True
 
     pygame.display.update()
+    clock.tick(FPS)
 
 # Score and Enemy Count Function
 def show_score(score,count,bossMode,health,boost,powerUpNum):
@@ -252,6 +269,9 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
     introText = font.render("Blimp Outbreak",True,(128,128,128))
     screen.blit(introText,(175,200))
   elif battleNumber == 3:
+    introText = font.render("Weird Waveforms",True,(128,128,128))
+    screen.blit(introText,(175,200))
+  elif battleNumber == 4:
     introText = font.render("8-Bit Blaster",True,(128,128,128))
     screen.blit(introText,(200,200))
   pygame.display.update()
@@ -350,10 +370,8 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
 
     # Event Checking
     for event in pygame.event.get():
-      if event.type == pygame.QUIT:
-        pygame.quit()
-        sys.exit()
-  
+      check_quit(event)
+
       # Player events
       if event.type == pygame.KEYDOWN:
         if event.key == keys[0]:
@@ -382,7 +400,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
 
       # Spawn power up
       if event.type == SPAWNPOWERUP:
-        powerUpNum = randint(1,battleNumber)
+        powerUpNum = randint(1,min(battleNumber,3)) # Only 3 power ups exist
         powerUpX = randint(100,760)
         powerUpY = randint(30,560)
         powerUpSpawned = True
@@ -600,7 +618,8 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       running = False
 
     pygame.display.update()
-    
+    clock.tick(FPS)
+
   return gameState
 
 ## MAIN
@@ -616,7 +635,7 @@ def main():
     choice = "play again"
     while choice == "play again":
       # Argument order: background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,health,hitbox,battleNumber
-      gameState = battle(background,sprite,10,1,50,50,False,10,64,1)
+      gameState = battle(background,sprite,10,0.75,50,50,False,10,64,1)
       choice = battle_end(gameState)
   
     # Second Battle - Blimp Outbreak
@@ -624,7 +643,7 @@ def main():
     sprite = pygame.transform.scale(pygame.image.load("enemy2.webp"),(72,49))
     choice = "play again"
     while choice == "play again":
-      gameState = battle(background,sprite,20,2,50,100,False,5,72,2)
+      gameState = battle(background,sprite,20,1.5,50,100,False,5,72,2)
       choice = battle_end(gameState)
     
     # Third Battle - Cosinial Waves
@@ -640,7 +659,7 @@ def main():
     sprite = pygame.transform.scale(pygame.image.load("enemy4.png"),(96,96))
     choice = "play again"
     while choice == "play again":
-      gameState = battle(background,sprite,1,0.5,50,50,True,100,96,4)
+      gameState = battle(background,sprite,1,0.3,50,50,True,100,96,4)
       choice = battle_end(gameState)
 
     # Once the third battle is won
