@@ -11,8 +11,22 @@ pygame.init()
 clock = pygame.time.Clock()
 FPS = 300 # Speeds are in pixels per frame, so this sets how fast the game plays
 
-# Image folder (found relative to this file, so the game runs from any directory)
-IMAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),"assets","images")
+# Asset folders (found relative to this file, so the game runs from any directory)
+ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),"assets")
+IMAGE_DIR = os.path.join(ASSET_DIR,"images")
+MUSIC_DIR = os.path.join(ASSET_DIR,"music")
+
+# Soundtracks: (file name, song name, artist) for the title screen and each battle
+TRACKS = {
+  "title": ("mesmerizing_galaxy.mp3","Mesmerizing Galaxy","Kevin MacLeod"),
+  1: ("cloud_dancer.mp3","Cloud Dancer","Kevin MacLeod"),
+  2: ("brain_dance.mp3","Brain Dance","Kevin MacLeod"),
+  3: ("blippy_trance.mp3","Blippy Trance","Kevin MacLeod"),
+  4: ("swift_strike.mp3","Swift Strike","PeriTune"),
+}
+MUSIC_LABEL_TIME = 5000 # How long the "Music:" label shows when a track starts (milliseconds)
+currentTrack = None
+trackStartTime = -MUSIC_LABEL_TIME
 
 # Image Loading Function (folder is backgrounds, sprites, powerups or ui)
 def load_image(folder,name):
@@ -39,6 +53,38 @@ def check_quit(event):
   if event.type == pygame.QUIT:
     pygame.quit()
     sys.exit()
+
+# Music Function (loops a track; keeps playing if that track is already on)
+def play_music(track):
+  global currentTrack, trackStartTime
+  if track == currentTrack:
+    return
+  currentTrack = track
+  trackStartTime = -MUSIC_LABEL_TIME # Hides the label unless the track starts
+  if not pygame.mixer.get_init():
+    return # No audio device, so play without music
+  try:
+    pygame.mixer.music.load(os.path.join(MUSIC_DIR,TRACKS[track][0]))
+    pygame.mixer.music.play(-1) # -1 loops the track forever
+    trackStartTime = pygame.time.get_ticks()
+  except (pygame.error,FileNotFoundError):
+    pygame.mixer.music.stop()
+    print("Could not play " + TRACKS[track][0] + ", continuing without music")
+
+# Music Label Function (shows the song name in the bottom right, then fades out)
+def show_music_label():
+  timeShown = pygame.time.get_ticks() - trackStartTime
+  if timeShown > MUSIC_LABEL_TIME:
+    return
+  labelFont = pygame.font.Font('freesansbold.ttf',13)
+  songName, artist = TRACKS[currentTrack][1], TRACKS[currentTrack][2]
+  text = labelFont.render("Music: " + songName + " by " + artist,True,(255,255,255))
+  label = pygame.Surface((text.get_width()+12,text.get_height()+2),pygame.SRCALPHA)
+  label.fill((0,0,0,160)) # See-through black box so the text is readable
+  label.blit(text,(6,1))
+  if timeShown > MUSIC_LABEL_TIME-1000: # Fade out over the last second
+    label.set_alpha(255*(MUSIC_LABEL_TIME-timeShown)//1000)
+  screen.blit(label,(798-label.get_width(),598-label.get_height())) # Sits below the boss health bar
 
 # Starting Screen Function
 def starting_screen():
@@ -125,7 +171,8 @@ def starting_screen():
                 keys = [pygame.K_LEFT,pygame.K_RIGHT,pygame.K_SPACE]
             if len(keys) == 3:
               keySet = True
-            
+
+    show_music_label()
     pygame.display.update()
     clock.tick(FPS)
   return keys
@@ -260,6 +307,7 @@ def get_latest_click():
 def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,health,hitbox,battleNumber):
   
   # Startup
+  play_music(battleNumber)
   score = 0
   font = pygame.font.Font('freesansbold.ttf',64)
   screen.fill((0,0,0))
@@ -275,6 +323,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
   elif battleNumber == 4:
     introText = font.render("8-Bit Blaster",True,(128,128,128))
     screen.blit(introText,(200,200))
+  show_music_label()
   pygame.display.update()
   sleep(2)
   
@@ -618,6 +667,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
       gameState = "won"
       running = False
 
+    show_music_label()
     pygame.display.update()
     clock.tick(FPS)
 
@@ -628,6 +678,7 @@ def battle(background,sprite,count,enemySpeed,spawnRange1,spawnRange2,bossMode,h
 def main():
   while True:
     # Display the starting screen
+    play_music("title")
     starting_screen()
   
     # First Battle - UFO Mania
