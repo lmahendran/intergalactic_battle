@@ -47,3 +47,15 @@ The game opens in an 800x600 window. Click the play button on the start screen t
 ## Credits
 
 Made by Logesh Mahendran as a summative assignment for ICD2O (January 2024), building on the class "Space Battle" game.
+
+### Music
+
+All tracks are licensed under [Creative Commons: By Attribution 4.0](http://creativecommons.org/licenses/by/4.0/).
+
+## Tracks
+
+- "Mesmerizing Galaxy" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
+- "Cloud Dancer" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
+- "Brain Dance" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
+- "Blippy Trance" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
+- "Swift Strike" by PeriTune ([peritune.com](https://peritune.com/blog/2025/02/16/swift_strike/))
